@@ -872,6 +872,11 @@
       return ctx;
     }
 
+    // Unlock AudioContext on first real user gesture
+    function unlock(){ getCtx(); }
+    document.addEventListener('pointerdown', unlock, { once: true });
+    document.addEventListener('keydown',     unlock, { once: true });
+
     function noise(vol, dur){
       const ac = getCtx();
       const len = Math.floor(ac.sampleRate * dur);
