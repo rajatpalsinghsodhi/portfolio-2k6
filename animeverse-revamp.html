@@ -1,0 +1,3132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnimeVerse — Three attempts. One app worth shipping.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Hanken+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────
+   AnimeVerse — Case Study (Revamp)
+   ───────────────────────────────────────────────────────── */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #050507;
+  --bg-2: #0B0B10;
+  --bg-3: #14141A;
+  --fg: #FAFAFC;
+  --muted: #8888A0;
+  --muted-2: #B8B8CC;
+  --line: rgba(255,255,255,0.07);
+  --line-2: rgba(255,255,255,0.14);
+
+  --v1: #F5A623;
+  --v2: #FF2D78;
+  --v3: #C8102E;
+  --accent: var(--v3);
+
+  --font-display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --font-jp: 'Zen Kaku Gothic New', sans-serif;
+
+  --max: 1320px;
+  --gutter: clamp(20px, 4vw, 64px);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+body { overflow-x: clip; }
+
+img, video { max-width: 100%; display: block; }
+button { font: inherit; border: none; background: none; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--accent); color: white; }
+
+::-webkit-scrollbar { width: 0; display: none; }
+html { scrollbar-width: none; }
+
+/* ── TYPE PRIMITIVES ─────────────────────── */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Global mono-label weight: DM Mono Regular reads too thin on dark — bump to 500 across labels */
+.feature-num,
+.feature-tags li,
+.panel-tag,
+.panel-meta,
+.stat-label,
+.iter-num,
+.iter-tag,
+.research-tag,
+.research-gap,
+.insight-label,
+.insight-attrib,
+.option-tag,
+.option-flaw,
+.option-win,
+.decision-num,
+.live-flag,
+.shot-caption,
+.hero-meta dt,
+.hero-scroll,
+.topnav,
+.anatomy-key .key-num,
+.craft-block .block-label,
+.type-name,
+.feature-row.feature-hero .feature-meta > .feature-num,
+.swatch .sw-info,
+footer { font-weight: 500; }
+.iter-num, .anatomy-key .key-num { font-weight: 700; }
+.kicker::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--accent);
+  transition: background 0.6s var(--ease);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 10vw, 168px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5.5vw, 84px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.lead {
+  font-size: clamp(17px, 1.4vw, 21px);
+  line-height: 1.55;
+  color: var(--muted-2);
+  max-width: 60ch;
+  margin-top: 32px;
+}
+
+.muted { color: var(--muted-2); }
+.fg-accent { color: var(--accent); transition: color 0.6s var(--ease); }
+.serif-em { font-style: normal; font-weight: 800; color: var(--accent); letter-spacing: -0.04em; }
+.h2 span.muted { font-style: normal; font-weight: 400; color: var(--muted-2); }
+
+/* ── LAYOUT ─────────────────────── */
+.container {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+  position: relative;
+}
+
+section { position: relative; }
+
+/* ── PROGRESS / NAV ─────────────────────── */
+.progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px; width: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 200;
+  transition: background 0.6s var(--ease);
+  will-change: transform;
+}
+
+.topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 22px var(--gutter);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  color: white;
+}
+.topnav > * { pointer-events: auto; }
+.topnav .brand { font-weight: 700; }
+.topnav .brand span { font-family: var(--font-jp); font-weight: 400; opacity: 0.6; margin-left: 8px; }
+.topnav .external {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+.topnav .external::after { content: '↗'; }
+.topnav .external:hover { opacity: 0.6; }
+
+/* ── SECTION NAV (sticky chapter index) ─────────────────────────── */
+.section-nav {
+  position: fixed;
+  top: 52px;
+  left: 0; right: 0;
+  z-index: 99;
+  background: rgba(5,5,7,0.82);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+  padding: 10px var(--gutter);
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+  pointer-events: none;
+}
+.section-nav.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.section-nav-inner {
+  display: flex;
+  justify-content: flex-start;
+  gap: 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 4px;
+}
+.section-nav-inner::-webkit-scrollbar { display: none; }
+.section-nav-item {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
+  flex-shrink: 0;
+}
+.section-nav-item:hover { color: var(--fg); }
+.section-nav-item.active { color: var(--accent); border-bottom-color: var(--accent); transition: color 0.6s var(--ease), border-color 0.4s var(--ease); }
+.section-nav-num { color: var(--muted); margin-right: 6px; }
+.section-nav-item.active .section-nav-num { color: var(--accent); }
+@media (max-width: 900px) { .section-nav { display: none; } }
+
+/* ── REVEAL SYSTEM ─────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 1.1s var(--ease), transform 1.1s var(--ease);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+[data-reveal-delay] { transition-delay: var(--d, 0ms); }
+
+.split-line {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+.split-line > span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 1.1s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+.split-line.in > span { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal], .split-line > span { opacity: 1 !important; transform: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   01 · HERO
+   ───────────────────────────────────────────────────────── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 var(--gutter) clamp(60px, 8vh, 100px);
+  position: relative;
+  overflow: hidden;
+}
+.hero-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,16,46,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,16,46,0.04) 1px, transparent 1px);
+  background-size: clamp(40px, 6vw, 80px) clamp(40px, 6vw, 80px);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 60%, black, transparent);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 60%, black, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-glow {
+  position: absolute;
+  width: 70vw; height: 70vw;
+  max-width: 900px; max-height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,16,46,0.16), transparent 65%);
+  bottom: -20vh; right: -10vw;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(20px);
+}
+.hero-inner {
+  max-width: var(--max);
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+.hero-kicker { margin-bottom: clamp(40px, 8vh, 96px); }
+.hero-title { margin-bottom: 20px; }
+.hero-jp {
+  font-family: var(--font-jp);
+  font-weight: 300;
+  font-size: clamp(20px, 2.4vw, 36px);
+  color: var(--accent);
+  letter-spacing: 0.18em;
+  margin-bottom: clamp(40px, 6vh, 72px);
+  opacity: 0.85;
+}
+.hero-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 32px;
+  max-width: 720px;
+  border-top: 1px solid var(--line);
+  padding-top: 32px;
+}
+.hero-meta dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.hero-meta dd {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.hero-scroll {
+  position: absolute;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+.hero-scroll-line {
+  width: 1px; height: 32px;
+  background: linear-gradient(to bottom, transparent, var(--muted-2));
+  animation: scrollPulse 2.4s var(--ease) infinite;
+}
+@keyframes scrollPulse {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   02 · WHY (premise)
+   ───────────────────────────────────────────────────────── */
+#why {
+  padding: clamp(120px, 18vh, 220px) 0 clamp(80px, 12vh, 160px);
+}
+.why-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(48px, 8vh, 96px);
+  margin-bottom: clamp(80px, 12vh, 140px);
+}
+.why-head .h2 { max-width: 18ch; }
+.why-head .h2 span.muted { display: block; }
+
+.why-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  position: relative;
+}
+.why-step {
+  position: relative;
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg-2);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+.why-step:hover { transform: translateY(-4px); border-color: var(--line-2); }
+.why-step .step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.why-step p {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.why-step.target {
+  background: var(--v3);
+  border-color: var(--v3);
+  color: white;
+}
+.why-step.target .step-num { color: rgba(255,255,255,0.65); }
+.why-step.target p { color: white; }
+.why-step .step-arrow {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  z-index: 1;
+}
+.why-step:last-child .step-arrow { display: none; }
+
+/* ─────────────────────────────────────────────────────────
+   03 · JOURNEY (horizontal pin-scroll)
+   ───────────────────────────────────────────────────────── */
+#journey {
+  height: 380vh;
+  background: black;
+  position: relative;
+}
+.journey-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.journey-track {
+  display: flex;
+  height: 100%;
+  width: 300vw;
+  will-change: transform;
+}
+.journey-panel {
+  width: 100vw;
+  height: 100vh;
+  flex-shrink: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 80px);
+  padding: 0 clamp(32px, 7vw, 120px);
+  --panel-color: var(--v3);
+}
+.journey-panel.j1 { --panel-color: var(--v1); }
+.journey-panel.j2 { --panel-color: var(--v2); }
+.journey-panel.j3 { --panel-color: var(--v3); }
+.journey-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--panel-color);
+  opacity: 0.045;
+  z-index: 0;
+}
+.journey-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--panel-color), transparent);
+  opacity: 0.4;
+}
+.panel-bignum {
+  position: absolute;
+  bottom: -8vh; left: clamp(-2vw, -3vw, -4vw);
+  font-family: var(--font-display);
+  font-size: clamp(280px, 40vw, 560px);
+  font-weight: 700;
+  line-height: 0.85;
+  color: var(--panel-color);
+  letter-spacing: -0.06em;
+  opacity: 0.07;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.panel-info { position: relative; z-index: 1; }
+.panel-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--panel-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.panel-tag::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: var(--panel-color);
+}
+.panel-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6.4vw, 110px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin-bottom: 28px;
+}
+.panel-title em { font-style: normal; font-weight: 800; color: var(--panel-color); letter-spacing: -0.04em; }
+.panel-desc {
+  font-size: clamp(15px, 1.2vw, 18px);
+  color: var(--muted-2);
+  max-width: 38ch;
+  line-height: 1.65;
+}
+.panel-meta {
+  margin-top: 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+}
+.panel-meta span:not(:last-child)::after { content: '·'; margin-left: 28px; color: var(--muted); }
+
+.panel-visual {
+  position: relative;
+  z-index: 1;
+  height: 76vh;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  box-shadow: 0 60px 120px -30px rgba(0,0,0,0.7), 0 0 80px -20px var(--panel-color);
+}
+.panel-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Pagination */
+.journey-pagination {
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 32px;
+  z-index: 5;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.jp-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  transition: color 0.4s var(--ease);
+}
+.jp-item .jp-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.jp-item.is-active { color: var(--accent); }
+.jp-item.is-active .jp-dot { background: var(--accent); transform: scale(1.4); }
+
+/* ─────────────────────────────────────────────────────────
+   04 · PRODUCT
+   ───────────────────────────────────────────────────────── */
+#product {
+  padding: clamp(140px, 20vh, 240px) 0;
+  background: var(--bg);
+  position: relative;
+}
+.product-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-bottom: clamp(80px, 12vh, 140px);
+  max-width: 880px;
+}
+.product-head .h2 span { color: var(--accent); }
+
+.product-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 4vw, 64px);
+  margin-bottom: clamp(80px, 12vh, 140px);
+}
+.feature {
+  border-top: 1px solid var(--line-2);
+  padding-top: 28px;
+  position: relative;
+}
+.feature::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0;
+  width: 32px; height: 2px;
+  background: var(--accent);
+  transition: background 0.6s var(--ease);
+}
+.feature .num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: block;
+}
+.feature h4 {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  line-height: 1.15;
+}
+.feature p {
+  font-size: 15px;
+  color: var(--muted-2);
+  line-height: 1.65;
+}
+
+.product-showcase {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.product-shot {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  position: relative;
+  transition: transform 0.6s var(--ease), border-color 0.6s var(--ease);
+}
+.product-shot:hover { border-color: var(--line-2); }
+.product-shot img { width: 100%; height: auto; }
+.product-shot .shot-caption {
+  position: absolute;
+  bottom: 16px; left: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 6px 12px;
+  border-radius: 2px;
+}
+.product-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   05 · CRAFT
+   ───────────────────────────────────────────────────────── */
+#craft {
+  padding: clamp(140px, 20vh, 240px) 0;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.craft-head { margin-bottom: clamp(80px, 12vh, 140px); max-width: 880px; }
+.craft-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: clamp(48px, 8vw, 120px);
+  align-items: start;
+}
+.craft-block .block-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.craft-block .block-count { color: var(--muted-2); font-weight: 700; }
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.swatch {
+  aspect-ratio: 1;
+  background: var(--c);
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.5s var(--ease);
+  cursor: default;
+}
+.swatch:hover { transform: translateY(-6px) scale(1.02); }
+.swatch .sw-info {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.swatch:hover .sw-info { opacity: 1; transform: none; }
+.swatch.dark .sw-info { background: linear-gradient(transparent, rgba(0,0,0,0.85)); }
+
+.type-stack { display: grid; gap: 32px; }
+.type-row {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: baseline;
+}
+.type-row:last-child { border-bottom: none; }
+.type-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  align-self: center;
+}
+.type-sample-display { font-family: var(--font-display); font-size: clamp(30px, 4vw, 56px); font-weight: 500; letter-spacing: -0.025em; line-height: 0.95; }
+.type-sample-body { font-family: var(--font-body); font-size: clamp(20px, 2.4vw, 32px); font-weight: 400; line-height: 1.2; }
+.type-sample-mono { font-family: var(--font-mono); font-size: clamp(16px, 1.8vw, 22px); letter-spacing: 0.04em; }
+.type-sample-jp { font-family: var(--font-jp); font-size: clamp(28px, 3.6vw, 48px); font-weight: 300; color: var(--accent); }
+
+/* ─────────────────────────────────────────────────────────
+   REFLECTION
+   ───────────────────────────────────────────────────────── */
+#reflect { padding: clamp(140px, 20vh, 240px) 0; }
+.reflect-list { display: grid; gap: 0; margin-bottom: clamp(64px, 10vh, 100px); }
+.reflect-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 32px;
+  padding: 40px 0;
+  border-top: 1px solid var(--line);
+  transition: padding-left 0.4s var(--ease), background 0.4s var(--ease);
+}
+.reflect-item:last-child { border-bottom: 1px solid var(--line); }
+.reflect-item:hover { padding-left: 16px; background: linear-gradient(90deg, rgba(200,16,46,0.04), transparent 60%); }
+.reflect-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  padding-top: 6px;
+}
+.reflect-body { max-width: 60ch; }
+.reflect-item h4 {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: var(--fg);
+}
+.reflect-item p { color: var(--muted-2); font-size: 16px; line-height: 1.65; }
+.reflect-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 8px;
+}
+.reflect-coda {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.45;
+  color: var(--muted-2);
+  max-width: 64ch;
+  border-left: 2px solid var(--accent);
+  padding-left: clamp(24px, 4vw, 48px);
+}
+.reflect-coda strong { color: var(--fg); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .reflect-item { grid-template-columns: 40px 1fr; }
+  .reflect-tag { grid-column: 2; padding-top: 0; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   06 · END
+   ───────────────────────────────────────────────────────── */
+#end {
+  padding: clamp(160px, 24vh, 280px) var(--gutter);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+#end::before {
+  content: '';
+  position: absolute;
+  inset: auto 0 -10vh 0;
+  height: 60vh;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(200,16,46,0.12), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+.end-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.end-kicker { display: inline-flex; margin-bottom: 48px; }
+.end-statement {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 6.4vw, 110px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  margin-bottom: 64px;
+}
+.end-statement em { font-style: normal; font-weight: 800; color: var(--accent); letter-spacing: -0.04em; }
+
+.end-cta-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 80px;
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 32px;
+  border: 1px solid var(--line-2);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.4s var(--ease), border-color 0.4s var(--ease), transform 0.4s var(--ease), color 0.4s var(--ease);
+}
+.cta::after { content: '↗'; transition: transform 0.4s var(--ease); }
+.cta:hover { background: var(--accent); border-color: var(--accent); color: white; transform: translateY(-2px); }
+.cta:hover::after { transform: translate(2px, -2px); }
+.cta.ghost { color: var(--muted-2); }
+.cta.ghost:hover { background: transparent; color: var(--fg); border-color: var(--line-2); }
+
+.end-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.end-meta span { margin: 0 12px; }
+
+/* Footer */
+footer {
+  padding: 32px var(--gutter);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .jp { font-family: var(--font-jp); font-weight: 300; letter-spacing: 0.1em; }
+
+/* ─────────────────────────────────────────────────────────
+   RESEARCH (competitive landscape)
+   ───────────────────────────────────────────────────────── */
+#research { padding: clamp(120px, 16vh, 200px) 0; }
+.research-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 64px;
+}
+.research-card {
+  padding: 36px 32px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  border-radius: 6px;
+  transition: border-color 0.4s var(--ease), transform 0.4s var(--ease);
+}
+.research-card:hover { border-color: var(--line-2); transform: translateY(-4px); }
+.research-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.research-tag::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+.research-name {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+  color: var(--fg);
+}
+.research-role {
+  color: var(--muted-2);
+  font-size: 15px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+.research-gap {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.research-insight {
+  margin-top: 64px;
+  padding: 56px clamp(32px, 5vw, 64px);
+  border-left: 2px solid var(--accent);
+  background: linear-gradient(90deg, rgba(200,16,46,0.06), transparent 70%);
+}
+.insight-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.insight-quote {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.6vw, 36px);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+  color: var(--fg);
+  max-width: 60ch;
+}
+.insight-quote::before { content: '"'; color: var(--accent); margin-right: 4px; }
+.insight-quote::after { content: '"'; color: var(--accent); margin-left: 4px; }
+.insight-attrib {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-top: 24px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   DECISIONS (tradeoffs)
+   ───────────────────────────────────────────────────────── */
+#decisions {
+  padding: clamp(140px, 20vh, 240px) 0;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 50%, var(--bg) 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.decisions-list { display: grid; gap: clamp(56px, 8vh, 88px); }
+.decision { display: grid; gap: 28px; }
+.decision-head {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.decision-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  min-width: 40px;
+}
+.decision-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--fg);
+}
+.decision-body {
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+.decision-option {
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.3s var(--ease);
+}
+.decision-option.rejected { opacity: 0.55; }
+.decision-option.rejected:hover { opacity: 0.8; }
+.decision-option.chosen {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(200,16,46,0.08), transparent 70%);
+  box-shadow: 0 0 80px -30px rgba(200,16,46,0.4);
+}
+.option-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.decision-option.chosen .option-tag { color: var(--accent); }
+.decision-option h4 {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  line-height: 1.25;
+}
+.decision-option p { color: var(--muted-2); font-size: 14px; line-height: 1.65; }
+.option-flaw, .option-win {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  line-height: 1.5;
+}
+.option-win { color: var(--accent); }
+.decision-arrow {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--accent);
+  align-self: center;
+  justify-self: center;
+}
+
+/* ─────────────────────────────────────────────────────────
+   ITERATION (post-launch log)
+   ───────────────────────────────────────────────────────── */
+#iteration { padding: clamp(140px, 20vh, 240px) 0; }
+.iter-log { list-style: none; display: grid; gap: 0; }
+.iter-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 32px;
+  padding: 36px 0;
+  border-top: 1px solid var(--line);
+  align-items: start;
+  transition: padding-left 0.4s var(--ease), background 0.4s var(--ease);
+}
+.iter-item:last-child { border-bottom: 1px solid var(--line); }
+.iter-item:hover { padding-left: 16px; background: linear-gradient(90deg, rgba(200,16,46,0.04), transparent 50%); }
+.iter-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  padding-top: 6px;
+}
+.iter-title {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  color: var(--fg);
+  line-height: 1.25;
+}
+.iter-detail { color: var(--muted-2); font-size: 15px; line-height: 1.65; max-width: 60ch; }
+.iter-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 8px;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────────
+   FEATURE REEL (videos in alternating rows)
+   ───────────────────────────────────────────────────────── */
+.feature-reel { display: grid; gap: clamp(140px, 22vh, 260px); margin-top: clamp(80px, 10vh, 120px); }
+.feature-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: center;
+  min-height: 70vh;
+  padding: clamp(20px, 4vh, 40px) 0;
+}
+.feature-row.reverse { grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); }
+.feature-row.reverse .feature-meta { order: 2; }
+.feature-row.reverse .feature-media { order: 1; }
+
+.feature-meta { padding: 16px 0; }
+.feature-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  transition: color 0.6s var(--ease);
+}
+.feature-num::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: var(--accent);
+  transition: background 0.6s var(--ease);
+}
+.feature-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 24px;
+}
+.feature-desc {
+  font-size: 17px;
+  color: var(--muted-2);
+  line-height: 1.65;
+  max-width: 42ch;
+  margin-bottom: 32px;
+}
+.feature-tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.feature-tags li {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  transition: border-color 0.4s var(--ease), color 0.4s var(--ease);
+}
+.feature-tags li:hover { border-color: var(--accent); color: var(--fg); }
+
+.feature-media {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  box-shadow: 0 60px 120px -40px rgba(0,0,0,0.6), 0 0 80px -30px var(--accent);
+  transition: box-shadow 0.6s var(--ease);
+  aspect-ratio: 16 / 10;
+}
+.feature-media:hover { box-shadow: 0 80px 160px -40px rgba(0,0,0,0.7), 0 0 120px -30px var(--accent); }
+.feature-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.feature-media-mobile { aspect-ratio: 9 / 16; max-width: 400px; margin-inline: auto; border-radius: 36px; padding: 12px; background: #14141A; border: 1px solid var(--line-2); box-shadow: 0 40px 100px -30px rgba(0,0,0,0.7), 0 0 80px -30px var(--accent); }
+.feature-media-mobile .feature-video { border-radius: 26px; }
+
+/* Feature hero — single column, full-width media */
+.feature-row.feature-hero {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 6vh, 72px);
+  min-height: auto;
+}
+.feature-row.feature-hero .feature-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 64px);
+  align-items: end;
+  padding: 0;
+  max-width: 100%;
+}
+.feature-row.feature-hero .feature-meta > .feature-num,
+.feature-row.feature-hero .feature-meta > .feature-title { grid-column: 1; }
+.feature-row.feature-hero .feature-meta > .feature-desc,
+.feature-row.feature-hero .feature-meta > .feature-tags { grid-column: 2; max-width: 100%; }
+.feature-row.feature-hero .feature-meta > .feature-num { margin-bottom: 16px; }
+.feature-row.feature-hero .feature-meta > .feature-title { margin-bottom: 0; font-size: clamp(40px, 4.6vw, 76px); }
+.feature-row.feature-hero .feature-meta > .feature-desc { margin-bottom: 16px; }
+
+.feature-row.feature-hero .feature-media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 80px 160px -40px rgba(0,0,0,0.7), 0 0 140px -40px var(--accent);
+}
+.feature-row.feature-hero .feature-media-mobile {
+  aspect-ratio: 9 / 16;
+  max-width: 360px;
+  max-height: 70vh;
+  width: 100%;
+  border-radius: 36px;
+  padding: 12px;
+  box-shadow: 0 50px 120px -30px rgba(0,0,0,0.7), 0 0 100px -40px var(--accent);
+}
+.feature-row.feature-hero .feature-media-mobile .feature-video { border-radius: 26px; }
+@media (max-width: 768px) {
+  .feature-row.feature-hero .feature-meta { grid-template-columns: 1fr; gap: 16px; }
+  .feature-row.feature-hero .feature-meta > .feature-num,
+  .feature-row.feature-hero .feature-meta > .feature-title,
+  .feature-row.feature-hero .feature-meta > .feature-desc,
+  .feature-row.feature-hero .feature-meta > .feature-tags { grid-column: 1; }
+}
+
+/* Live tag flag */
+.live-flag {
+  position: absolute;
+  top: 16px; left: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: white;
+}
+.live-flag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #00E676;
+  box-shadow: 0 0 8px rgba(0,230,118,0.6);
+  animation: pulseLive 2s ease infinite;
+}
+@keyframes pulseLive {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   TRY IT (live scene identifier)
+   ───────────────────────────────────────────────────────── */
+#try {
+  padding: clamp(140px, 20vh, 240px) 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(200,16,46,0.04) 50%, transparent 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+#try::before {
+  content: '';
+  position: absolute;
+  inset: 50% 0 -10% 0;
+  height: 70vh;
+  background: radial-gradient(ellipse 60% 100% at 50% 50%, rgba(200,16,46,0.08), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+#try .container { position: relative; z-index: 1; }
+.try-widget {
+  border: 1px solid var(--line-2);
+  background: var(--bg-2);
+  border-radius: 12px;
+  padding: clamp(28px, 4vw, 48px);
+  display: grid;
+  gap: 28px;
+}
+.try-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: stretch;
+}
+.try-url {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 14px 18px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.3s var(--ease);
+}
+.try-url::placeholder { color: var(--muted); }
+.try-url:focus { border-color: var(--accent); }
+.try-btn {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: white;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 14px 24px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: filter 0.3s var(--ease), transform 0.3s var(--ease);
+  white-space: nowrap;
+}
+.try-btn:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
+.try-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.try-btn span { transition: transform 0.3s var(--ease); }
+.try-btn:hover:not(:disabled) span { transform: translateX(2px); }
+
+.try-samples-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.try-samples {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.try-sample {
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-3);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.try-sample img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s var(--ease); }
+.try-sample:hover { border-color: var(--accent); transform: translateY(-2px); }
+.try-sample:hover img { transform: scale(1.05); }
+.try-sample:disabled { opacity: 0.5; cursor: not-allowed; }
+.try-sample::after {
+  content: '↗';
+  position: absolute;
+  top: 8px; right: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+.try-sample:hover::after { opacity: 1; }
+
+.try-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-3);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 60px -20px rgba(200,16,46,0.4);
+}
+.try-result[hidden] { display: none; }
+.try-result-media {
+  background: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+}
+.try-result-media video,
+.try-result-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.try-result-meta { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+.try-result-flag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.try-result-flag::before {
+  content: '✓';
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.try-conf {
+  margin-left: 4px;
+  color: var(--muted-2);
+  font-weight: 700;
+}
+.try-title {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+.try-episode, .try-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+.try-time { color: var(--accent); }
+.try-detail-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 12px;
+  align-self: flex-start;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s var(--ease);
+}
+.try-detail-link:hover { border-bottom-color: var(--accent); }
+.try-error {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 12px 16px;
+  background: rgba(200,16,46,0.08);
+  border-left: 2px solid var(--accent);
+}
+.try-error[hidden] { display: none; }
+.try-foot {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.try-foot a { color: var(--accent); }
+
+/* ── Drop zone ── */
+.try-drop {
+  border: 1.5px dashed var(--line-2);
+  border-radius: 8px;
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg-3);
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.try-drop:hover,
+.try-drop.drag-over {
+  border-color: var(--accent);
+  background: rgba(200,16,46,0.06);
+}
+.try-drop input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.try-drop-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+  opacity: 0.6;
+  line-height: 1;
+}
+.try-drop-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  display: block;
+  line-height: 1.6;
+}
+.try-drop-label strong { color: var(--fg); }
+.try-drop-label small {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.55;
+  font-size: 10px;
+}
+.try-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.try-divider::before, .try-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-2);
+}
+/* Preview thumbnail when file selected */
+.try-preview {
+  display: none;
+  position: relative;
+}
+.try-preview.has-image { display: block; }
+.try-preview img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  display: block;
+}
+.try-preview-clear {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  color: var(--muted-2);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.2s;
+}
+.try-preview-clear:hover { background: rgba(200,16,46,0.5); color: white; }
+
+@media (max-width: 768px) {
+  .try-input-row { grid-template-columns: 1fr; }
+  .try-samples { grid-template-columns: repeat(2, 1fr); }
+  .try-result { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   ANATOMY (annotated screenshot)
+   ───────────────────────────────────────────────────────── */
+#anatomy {
+  padding: clamp(140px, 20vh, 240px) 0;
+  position: relative;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.section-head { max-width: 880px; margin-bottom: clamp(80px, 12vh, 140px); }
+.section-head .h2 span { color: var(--accent); transition: color 0.6s var(--ease); }
+.section-head .lead { margin-top: 32px; }
+
+.anatomy-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(260px, 1fr);
+  gap: clamp(32px, 4vw, 64px);
+  align-items: start;
+}
+.anatomy-shot {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  box-shadow: 0 60px 120px -40px rgba(0,0,0,0.6);
+}
+.anatomy-shot img { width: 100%; height: auto; display: block; }
+.pin {
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid white;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(200,16,46,0.5), 0 0 0 8px rgba(200,16,46,0.18);
+  animation: pinPulse 2.4s ease infinite;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.pin:hover, .pin.active {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 4px 24px rgba(200,16,46,0.7), 0 0 0 12px rgba(200,16,46,0.22);
+  animation: none;
+}
+@keyframes pinPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(200,16,46,0.5), 0 0 0 8px rgba(200,16,46,0.18); }
+  50% { box-shadow: 0 4px 12px rgba(200,16,46,0.5), 0 0 0 16px rgba(200,16,46,0); }
+}
+@media (prefers-reduced-motion: reduce) { .pin { animation: none; } .live-flag::before { animation: none; } }
+
+.anatomy-key {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  position: sticky;
+  top: 100px;
+}
+.anatomy-key li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  transition: padding-left 0.4s var(--ease), border-color 0.4s var(--ease);
+  cursor: default;
+}
+.anatomy-key li:first-child { border-top: 1px solid var(--line); }
+.anatomy-key li.active, .anatomy-key li:hover {
+  padding-left: 16px;
+  border-bottom-color: var(--accent);
+}
+.anatomy-key .key-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  align-self: start;
+  width: 28px;
+  transition: color 0.6s var(--ease);
+}
+.anatomy-key .key-text {
+  font-size: 15px;
+  color: var(--fg);
+  line-height: 1.55;
+}
+.anatomy-key .key-text small {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-2);
+  margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────
+   UNDER THE HOOD (architecture + stats)
+   ───────────────────────────────────────────────────────── */
+#under {
+  padding: clamp(140px, 20vh, 240px) 0;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 50%, var(--bg) 100%);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+.arch-wrap {
+  position: relative;
+  margin-bottom: clamp(80px, 12vh, 140px);
+}
+.arch-svg {
+  width: 100%;
+  height: auto;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: block;
+  overflow: visible;
+}
+.arch-svg .arch-rect {
+  fill: var(--bg-3);
+  stroke: var(--line-2);
+  stroke-width: 1;
+  transition: stroke 0.6s var(--ease), fill 0.4s var(--ease);
+}
+.arch-svg .arch-rect-accent {
+  fill: rgba(200,16,46,0.08);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  transition: stroke 0.6s var(--ease);
+}
+.arch-svg .arch-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 1.6s var(--ease), stroke 0.6s var(--ease);
+}
+.arch-svg.in .arch-line { stroke-dashoffset: 0; }
+.arch-svg .node-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  fill: var(--muted);
+}
+.arch-svg .node-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  fill: var(--fg);
+}
+.arch-svg .node-caption {
+  font-family: var(--font-body);
+  font-size: 12px;
+  fill: var(--muted-2);
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(32px, 5vw, 64px);
+  border-top: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--line-2);
+  padding: clamp(48px, 8vh, 80px) 0;
+}
+.stat { text-align: left; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 8vw, 128px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--fg);
+  margin-bottom: 16px;
+}
+.stat-num small {
+  font-size: 0.5em;
+  color: var(--accent);
+  margin-left: 4px;
+  font-weight: 400;
+  vertical-align: 0.15em;
+  transition: color 0.6s var(--ease);
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ─────────────────────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .product-features { grid-template-columns: 1fr; gap: 32px; }
+  .craft-grid { grid-template-columns: 1fr; }
+  .product-grid-2 { grid-template-columns: 1fr; }
+  .anatomy-stage { grid-template-columns: 1fr; gap: 48px; }
+  .anatomy-key { position: static; }
+  .feature-row, .feature-row.reverse { grid-template-columns: 1fr; gap: 32px; }
+  .feature-row.reverse .feature-meta, .feature-row.reverse .feature-media { order: 0; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .research-grid { grid-template-columns: 1fr; }
+  .decision-body { grid-template-columns: 1fr; }
+  .decision-arrow { transform: rotate(90deg); }
+  .iter-item { grid-template-columns: 40px 1fr; }
+  .iter-tag { grid-column: 2; padding-top: 0; padding-left: 0; }
+}
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .why-flow { grid-template-columns: 1fr 1fr; }
+  .why-step .step-arrow { display: none; }
+  .journey-panel { grid-template-columns: 1fr; padding: 80px var(--gutter) 100px; gap: 32px; }
+  .panel-visual { height: 50vh; }
+  .panel-bignum { font-size: 240px; }
+  .hero-meta { grid-template-columns: 1fr 1fr; }
+  .palette { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .why-flow { grid-template-columns: 1fr; }
+  .hero-meta { grid-template-columns: 1fr; gap: 20px; }
+  .panel-meta { font-size: 10px; gap: 8px 16px; }
+  .panel-meta span:not(:last-child)::after { margin-left: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<nav class="topnav">
+  <a href="#hero" class="brand">AnimeVerse <span>アニメバース</span></a>
+  <a href="https://aniverse-2-0.vercel.app" target="_blank" rel="noopener" class="external">V3 live</a>
+</nav>
+
+<nav class="section-nav" id="sectionNav" aria-label="Case study chapters">
+  <div class="section-nav-inner">
+    <a href="#why" class="section-nav-item"><span class="section-nav-num">01</span>Premise</a>
+    <a href="#research" class="section-nav-item"><span class="section-nav-num">02</span>Research</a>
+    <a href="#journey" class="section-nav-item"><span class="section-nav-num">03</span>Process</a>
+    <a href="#decisions" class="section-nav-item"><span class="section-nav-num">04</span>Decisions</a>
+    <a href="#product" class="section-nav-item"><span class="section-nav-num">05</span>Product</a>
+    <a href="#try" class="section-nav-item"><span class="section-nav-num">06</span>Try it</a>
+    <a href="#anatomy" class="section-nav-item"><span class="section-nav-num">07</span>Anatomy</a>
+    <a href="#iteration" class="section-nav-item"><span class="section-nav-num">08</span>Updates</a>
+    <a href="#under" class="section-nav-item"><span class="section-nav-num">09</span>Tech</a>
+    <a href="#craft" class="section-nav-item"><span class="section-nav-num">10</span>Craft</a>
+    <a href="#reflect" class="section-nav-item"><span class="section-nav-num">11</span>Reflect</a>
+  </div>
+</nav>
+
+<!-- ─────────────── 01 · HERO ─────────────── -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <p class="kicker hero-kicker" data-reveal>Case Study · 2026</p>
+    <h1 class="display hero-title">
+      <span class="split-line"><span style="--d:60ms">Three attempts.</span></span>
+      <span class="split-line"><span style="--d:140ms">One app</span></span>
+      <span class="split-line"><span style="--d:220ms"><em class="fg-accent serif-em">worth shipping.</em></span></span>
+    </h1>
+    <p class="hero-jp" data-reveal data-reveal-delay style="--d:600ms" lang="ja">アニメバース · 三度作る</p>
+    <dl class="hero-meta" data-reveal data-reveal-delay style="--d:800ms">
+      <div><dt>Role</dt><dd>Designer + Frontend</dd></div>
+      <div><dt>Year</dt><dd>2025 — 2026</dd></div>
+      <div><dt>Stack</dt><dd>React · Vite · trace.moe</dd></div>
+      <div><dt>Type</dt><dd>Self-initiated</dd></div>
+    </dl>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="hero-scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─────────────── 02 · WHY ─────────────── -->
+<section id="why">
+  <div class="container">
+    <div class="why-head">
+      <p class="kicker" data-reveal>01 · The premise</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">
+        You see a clip in a chat.
+        <span class="muted">Three apps later, you still don't know what it is.</span>
+      </h2>
+    </div>
+    <div class="why-flow">
+      <div class="why-step" data-reveal data-reveal-delay style="--d:0ms">
+        <span class="step-num">01 / Now</span>
+        <p>Screenshot</p>
+        <span class="step-arrow">→</span>
+      </div>
+      <div class="why-step" data-reveal data-reveal-delay style="--d:80ms">
+        <span class="step-num">02</span>
+        <p>Reverse-image search</p>
+        <span class="step-arrow">→</span>
+      </div>
+      <div class="why-step" data-reveal data-reveal-delay style="--d:160ms">
+        <span class="step-num">03</span>
+        <p>Cross-reference catalog</p>
+        <span class="step-arrow">→</span>
+      </div>
+      <div class="why-step target" data-reveal data-reveal-delay style="--d:240ms">
+        <span class="step-num">04 / V3</span>
+        <p>One surface.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 02b · RESEARCH ─────────────── -->
+<section id="research">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>02 · Research</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">What's <span class="muted">already out there.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        Four tools shape how anime fans discover today. None of them stitch the screenshot → show page → library loop on one mobile-first surface.
+      </p>
+    </div>
+
+    <div class="research-grid">
+      <div class="research-card" data-reveal data-reveal-delay style="--d:0ms">
+        <div class="research-tag">Catalog</div>
+        <h3 class="research-name">MyAnimeList</h3>
+        <p class="research-role">The reference database — scoring, episode lists, decade of metadata.</p>
+        <p class="research-gap">— No scene ID. Mobile is an afterthought. Brand reads early-2000s.</p>
+      </div>
+      <div class="research-card" data-reveal data-reveal-delay style="--d:80ms">
+        <div class="research-tag">Catalog</div>
+        <h3 class="research-name">AniList</h3>
+        <p class="research-role">Modern catalog with social features and a clean GraphQL API.</p>
+        <p class="research-gap">— No scene ID. Detail pages route away from browse — context lost.</p>
+      </div>
+      <div class="research-card" data-reveal data-reveal-delay style="--d:160ms">
+        <div class="research-tag">Streamer</div>
+        <h3 class="research-name">Crunchyroll</h3>
+        <p class="research-role">First-party streaming for the licenses they own.</p>
+        <p class="research-gap">— Walled garden. Discovery shaped by what they license, not what's good.</p>
+      </div>
+      <div class="research-card" data-reveal data-reveal-delay style="--d:240ms">
+        <div class="research-tag">Tool</div>
+        <h3 class="research-name">trace.moe</h3>
+        <p class="research-role">Frame-match scene identification — the core utility.</p>
+        <p class="research-gap">— Pure utility. Once you have a match, you're back to bouncing tabs.</p>
+      </div>
+    </div>
+
+    <div class="research-insight" data-reveal>
+      <p class="insight-label">— What everyone's missing</p>
+      <p class="insight-quote">I want to take a screenshot and end up in the show — without bouncing across five tabs.</p>
+      <p class="insight-attrib">— The job AnimeVerse actually solves</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 03 · JOURNEY (horizontal pin) ─────────────── -->
+<section id="journey" aria-label="Three iterations">
+  <div class="journey-pin">
+    <div class="journey-track" id="journeyTrack">
+
+      <article class="journey-panel j1">
+        <span class="panel-bignum" aria-hidden="true">V1</span>
+        <div class="panel-info">
+          <span class="panel-tag">V1 · AniTrend · 2025</span>
+          <h3 class="panel-title">Made it <em>work</em>.</h3>
+          <p class="panel-desc">
+            Vanilla JS and D3, built to prove the trace.moe path could power a real product. It worked — and felt like a developer tool.
+          </p>
+          <div class="panel-meta">
+            <span>Vanilla JS</span>
+            <span>D3</span>
+            <span>No identity</span>
+          </div>
+        </div>
+        <div class="panel-visual">
+          <img src="ss-v1-scene-finder.png" alt="V1 — Anime Trends Explorer with charts" loading="lazy">
+        </div>
+      </article>
+
+      <article class="journey-panel j2">
+        <span class="panel-bignum" aria-hidden="true">V2</span>
+        <div class="panel-info">
+          <span class="panel-tag">V2 · Discovery · 2025</span>
+          <h3 class="panel-title">Made it <em>pretty</em>.</h3>
+          <p class="panel-desc">
+            React rebuild. Hot pink, editorial shell, persistent scene-ID modal. The first version with an opinion about how it looked — and a palette that fought the art it framed.
+          </p>
+          <div class="panel-meta">
+            <span>React</span>
+            <span>Editorial layout</span>
+            <span>Hot pink</span>
+          </div>
+        </div>
+        <div class="panel-visual">
+          <img src="ss-v2-landing-new.png" alt="V2 — Discovery hub landing in hot pink" loading="lazy">
+        </div>
+      </article>
+
+      <article class="journey-panel j3">
+        <span class="panel-bignum" aria-hidden="true">V3</span>
+        <div class="panel-info">
+          <span class="panel-tag">V3 · AnimeVerse 2.0 · 2026</span>
+          <h3 class="panel-title">Made it <em>ours</em>.</h3>
+          <p class="panel-desc">
+            Crimson editorial system, library-first, mobile-respecting. Same APIs, completely different emotional response. The version that ships.
+          </p>
+          <div class="panel-meta">
+            <span>React 19</span>
+            <span>TypeScript</span>
+            <span>AniList + Jikan</span>
+            <span>trace.moe</span>
+          </div>
+        </div>
+        <div class="panel-visual">
+          <img src="./04-home.png" alt="V3 — home grid with crimson chart badges" loading="lazy">
+        </div>
+      </article>
+
+    </div>
+    <div class="journey-pagination" aria-hidden="true">
+      <span class="jp-item is-active" data-jp="0"><span class="jp-dot"></span>V1</span>
+      <span class="jp-item" data-jp="1"><span class="jp-dot"></span>V2</span>
+      <span class="jp-item" data-jp="2"><span class="jp-dot"></span>V3</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 03b · DECISIONS ─────────────── -->
+<section id="decisions">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>04 · Decisions</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">Three forks <span class="muted">in the road.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        For each, I considered the obvious option and a sharper one. Here's what I picked, and what made it sharper.
+      </p>
+    </div>
+
+    <div class="decisions-list">
+
+      <article class="decision" data-reveal>
+        <header class="decision-head">
+          <span class="decision-num">01</span>
+          <h3 class="decision-title">Where should scene identification live?</h3>
+        </header>
+        <div class="decision-body">
+          <div class="decision-option rejected">
+            <span class="option-tag">— Considered</span>
+            <h4>A dedicated /identify route</h4>
+            <p>Drop image → match → link out to the detail page. Simple to build, easy to share.</p>
+            <span class="option-flaw">→ Felt like a separate tool, not a feature.</span>
+          </div>
+          <div class="decision-arrow">→</div>
+          <div class="decision-option chosen">
+            <span class="option-tag">— Chosen</span>
+            <h4>A persistent modal everywhere</h4>
+            <p>Globally accessible from the nav. Match → land in detail without losing your scroll.</p>
+            <span class="option-win">→ Browse and identify feel like one product.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="decision" data-reveal>
+        <header class="decision-head">
+          <span class="decision-num">02</span>
+          <h3 class="decision-title">How should detail data unfold?</h3>
+        </header>
+        <div class="decision-body">
+          <div class="decision-option rejected">
+            <span class="option-tag">— Considered</span>
+            <h4>One long-scroll detail page</h4>
+            <p>All metadata in a single document. Familiar. Traditional. SEO-friendly.</p>
+            <span class="option-flaw">→ Routes away from grid — context lost on dismiss.</span>
+          </div>
+          <div class="decision-arrow">→</div>
+          <div class="decision-option chosen">
+            <span class="option-tag">— Chosen</span>
+            <h4>A tabbed modal — five lenses</h4>
+            <p>Overview, Cast, Timeline, Similar, Stream. Same overlay, different views.</p>
+            <span class="option-win">→ Dismiss returns you exactly where you were.</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="decision" data-reveal>
+        <header class="decision-head">
+          <span class="decision-num">03</span>
+          <h3 class="decision-title">When should the library notify?</h3>
+        </header>
+        <div class="decision-body">
+          <div class="decision-option rejected">
+            <span class="option-tag">— Considered</span>
+            <h4>Push for every new episode</h4>
+            <p>Maximum engagement. Notify on every drop. Every. Single. Episode.</p>
+            <span class="option-flaw">→ Becomes spam. Library degrades into noise.</span>
+          </div>
+          <div class="decision-arrow">→</div>
+          <div class="decision-option chosen">
+            <span class="option-tag">— Chosen</span>
+            <h4>A quiet 2-day in-library badge</h4>
+            <p>In-product only. Only saved titles. Only when 2 days out from airing.</p>
+            <span class="option-win">→ Library feels alive — not noisy.</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 05 · PRODUCT ─────────────── -->
+<section id="product">
+  <div class="container">
+    <div class="product-head">
+      <p class="kicker" data-reveal>05 · Shipped product</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">
+        The version that <span>made it home.</span>
+      </h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        AnimeVerse 2.0 — seasonal discovery, tabbed detail modals, library, similar titles, and scene identification on one surface.
+      </p>
+    </div>
+
+    <div class="feature-reel">
+
+      <!-- Feature 01 -->
+      <div class="feature-row" data-reveal>
+        <div class="feature-meta">
+          <span class="feature-num">01 — Identify</span>
+          <h3 class="feature-title">Scene to title in one drop.</h3>
+          <p class="feature-desc">
+            Drop a screenshot, paste a URL, hit cmd+V from clipboard. trace.moe matches the frame, AniList fills in the metadata, you land inside the show.
+          </p>
+          <ul class="feature-tags">
+            <li>trace.moe</li><li>AniList</li><li>Persistent modal</li><li>~1.4s match</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <span class="live-flag">Live capture</span>
+          <video class="feature-video" autoplay muted loop playsinline preload="metadata" poster="./media/provided-screens/01-landing.png">
+            <source src="./feature-scene-identifier.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <!-- Feature 02 -->
+      <div class="feature-row feature-hero" data-reveal>
+        <div class="feature-meta">
+          <span class="feature-num">02 — Browse</span>
+          <h3 class="feature-title">One detail surface. Four lenses.</h3>
+          <p class="feature-desc">
+            Tabbed modal — Overview, Cast, Timeline, Similar — pulls from two APIs and never bounces you out of the grid you were browsing.
+          </p>
+          <ul class="feature-tags">
+            <li>Tabbed modal</li><li>AniList + Jikan</li><li>No route changes</li>
+          </ul>
+        </div>
+        <div class="feature-media">
+          <span class="live-flag">Live capture</span>
+          <video class="feature-video" autoplay muted loop playsinline preload="metadata" poster="./media/provided-screens/05-info-overview.png">
+            <source src="./feature-anime-detail-tabs.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <!-- Feature 03 -->
+      <div class="feature-row" data-reveal>
+        <div class="feature-meta">
+          <span class="feature-num">03 — Track</span>
+          <h3 class="feature-title">A library that behaves like a watchlist.</h3>
+          <p class="feature-desc">
+            Plan to watch · Watching · Completed. Search inside your collection, get notified when saved titles have an episode airing in two days, see "users also liked" via Jikan.
+          </p>
+          <ul class="feature-tags">
+            <li>Library</li><li>Notifications</li><li>Similar (Jikan)</li><li>Mobile-first</li>
+          </ul>
+        </div>
+        <div class="feature-media feature-media-mobile">
+          <video class="feature-video" autoplay muted loop playsinline preload="metadata" poster="./media/provided-screens/13-library.png">
+            <source src="./feature-mobile-library.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+      <!-- Feature 04 (extra: notifications) -->
+      <div class="feature-row reverse" data-reveal>
+        <div class="feature-meta">
+          <span class="feature-num">04 — Surface</span>
+          <h3 class="feature-title">Notifications that respect your time.</h3>
+          <p class="feature-desc">
+            When a saved title has an episode airing in two days, the library surfaces a quiet badge. Library becomes a watchlist instead of a bookmark pile.
+          </p>
+          <ul class="feature-tags">
+            <li>Episode tracking</li><li>2-day window</li><li>Non-intrusive</li>
+          </ul>
+        </div>
+        <div class="feature-media feature-media-mobile">
+          <video class="feature-video" autoplay muted loop playsinline preload="metadata" poster="./media/provided-screens/12-notification.png">
+            <source src="./feature-notifications.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 06 · TRY IT (live demo) ─────────────── -->
+<section id="try" aria-label="Live scene identifier">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>06 · Try it · Live</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">Identify any <span>scene.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        Same trace.moe + AniList path as the shipped V3 product. Paste a direct image URL or pick a sample — get the show, episode, timestamp, and a clip of the matched moment.
+      </p>
+    </div>
+
+    <div class="try-widget" data-reveal>
+
+      <!-- Drop zone -->
+      <div class="try-drop" id="tryDrop" role="button" tabindex="0" aria-label="Drop an image file, or click to browse">
+        <input type="file" id="tryFile" accept="image/*" aria-hidden="true" tabindex="-1">
+        <span class="try-drop-icon" aria-hidden="true">⬆</span>
+        <span class="try-drop-label">
+          <strong>Drop a screenshot here</strong> — or click to browse
+          <small>cmd+V to paste from clipboard · JPG / PNG / WEBP</small>
+        </span>
+      </div>
+
+      <!-- File preview (shown after pick/drop) -->
+      <div class="try-preview" id="tryPreview" aria-live="polite">
+        <img id="tryPreviewImg" alt="Selected image preview">
+        <button type="button" class="try-preview-clear" id="tryPreviewClear" aria-label="Clear selected image">✕</button>
+      </div>
+
+      <div class="try-divider">or identify by URL</div>
+
+      <div class="try-input-row">
+        <input type="url" id="tryUrl" class="try-url" placeholder="https://example.com/screenshot.jpg" autocomplete="off" />
+        <button type="button" id="tryBtn" class="try-btn">Identify <span>→</span></button>
+      </div>
+
+      <p class="try-samples-label">— Or pick a sample to identify</p>
+      <div class="try-samples" id="trySamples">
+        <button type="button" class="try-sample" data-sample-url="https://api.trace.moe/image/UMNEjg2YNBnDBX9gR5BRp6f" aria-label="Sample 1">
+          <img src="./sample-clannad.png" alt="Clannad sample frame" loading="lazy">
+        </button>
+        <button type="button" class="try-sample" data-sample-url="./media/sample-gurren-lagann.png" aria-label="Sample 2">
+          <img src="./sample-gurren-lagann.png" alt="Gurren Lagann sample frame" loading="lazy">
+        </button>
+        <button type="button" class="try-sample" data-sample-url="./media/sample-mirai-nikki.png" aria-label="Sample 3">
+          <img src="./sample-mirai-nikki.png" alt="Mirai Nikki sample frame" loading="lazy">
+        </button>
+        <button type="button" class="try-sample" data-sample-url="./media/sample-scene-one-piece.png" aria-label="Sample 4">
+          <img src="./sample-scene-one-piece.png" alt="One Piece sample frame" loading="lazy">
+        </button>
+      </div>
+
+      <div class="try-result" id="tryResult" hidden>
+        <div class="try-result-meta">
+          <p class="try-result-flag">Match <span class="try-conf" id="tryConf">—</span></p>
+          <h3 class="try-title" id="tryTitle">—</h3>
+          <p class="try-episode" id="tryEpisode">—</p>
+          <p class="try-time" id="tryTime">—</p>
+          <a id="tryDetailLink" href="#" target="_blank" rel="noopener" class="try-detail-link">Open in AnimeVerse ↗</a>
+        </div>
+        <div class="try-result-media">
+          <video id="tryClip" muted loop playsinline preload="metadata"></video>
+          <img id="tryFrame" alt="Matched frame" hidden>
+        </div>
+      </div>
+
+      <p class="try-error" id="tryError" hidden></p>
+      <p class="try-foot">Powered by <a href="https://trace.moe" target="_blank" rel="noopener">trace.moe ↗</a> + <a href="https://anilist.co" target="_blank" rel="noopener">AniList ↗</a> · Same engine as V3 live</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 07 · ANATOMY ─────────────── -->
+<section id="anatomy">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>07 · Anatomy</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">Inside <span>one screen.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        The detail modal does a lot. Here's every component, what it pulls, and why it sits where it sits.
+      </p>
+    </div>
+
+    <div class="anatomy-stage">
+      <div class="anatomy-shot" data-reveal>
+        <img src="./05-info-overview.png" alt="V3 detail modal anatomy — Overview tab with annotated regions" loading="lazy">
+        <button class="pin" style="--x: 10%; --y: 8%" data-pin="1" aria-label="Tab strip">1</button>
+        <button class="pin" style="--x: 22%; --y: 38%" data-pin="2" aria-label="Title and metadata">2</button>
+        <button class="pin" style="--x: 78%; --y: 46%" data-pin="3" aria-label="Add to library SlideButton">3</button>
+        <button class="pin" style="--x: 18%; --y: 78%" data-pin="4" aria-label="Genre tags">4</button>
+        <button class="pin" style="--x: 72%; --y: 86%" data-pin="5" aria-label="Synopsis from AniList">5</button>
+      </div>
+      <ol class="anatomy-key">
+        <li data-key="1">
+          <span class="key-num">01</span>
+          <span class="key-text">Tab strip — five lenses, one modal<small>Overview · Cast · Timeline · Similar · Stream. Active tab uses a crimson rule, not a fill, so chrome stays editorial.</small></span>
+        </li>
+        <li data-key="2">
+          <span class="key-num">02</span>
+          <span class="key-text">Title + score — sourced live<small>Romaji and native title, score, status, episodes — all from Jikan / AniList. UI does typesetting, not invention.</small></span>
+        </li>
+        <li data-key="3">
+          <span class="key-num">03</span>
+          <span class="key-text">SlideButton — one interaction, two modalities<small>Hover-fill on desktop, 350ms touch-hold on mobile. Same visual language, different physics.</small></span>
+        </li>
+        <li data-key="4">
+          <span class="key-num">04</span>
+          <span class="key-text">Genre tags — Jikan<small>Filterable. Tap a tag to land in a Top Charts query for that genre.</small></span>
+        </li>
+        <li data-key="5">
+          <span class="key-num">05</span>
+          <span class="key-text">Synopsis — AniList<small>Plot copy is API-grounded. Differentiation is composition (typesetting, hierarchy, crimson chrome) — not invented copy.</small></span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 07 · ITERATION ─────────────── -->
+<section id="iteration">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>08 · Iteration</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">What changed <span class="muted">after I shipped.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        V3 didn't end at launch. A 320–414px responsive audit, copy that didn't match the data, and library behavior tuned from feedback — four changes in the first month.
+      </p>
+    </div>
+
+    <ol class="iter-log">
+      <li class="iter-item" data-reveal data-reveal-delay style="--d:0ms">
+        <span class="iter-num">01</span>
+        <div class="iter-text">
+          <h4 class="iter-title">Layout overflow at 320px</h4>
+          <p class="iter-detail">Fixed-width filter bar broke at the smallest tested viewport. Replaced with <code>flex-wrap</code> and fluid sizing — survived 7 audit findings in one pass.</p>
+        </div>
+        <span class="iter-tag">Mar 9</span>
+      </li>
+      <li class="iter-item" data-reveal data-reveal-delay style="--d:80ms">
+        <span class="iter-num">02</span>
+        <div class="iter-text">
+          <h4 class="iter-title">"Trending" was misleading</h4>
+          <p class="iter-detail">Users read it as algorithmic. Renamed to <strong>Top airing</strong> with a subtitle and loading text that don't imply the wrong data source.</p>
+        </div>
+        <span class="iter-tag">Mar 14</span>
+      </li>
+      <li class="iter-item" data-reveal data-reveal-delay style="--d:160ms">
+        <span class="iter-num">03</span>
+        <div class="iter-text">
+          <h4 class="iter-title">Touch targets under 44px</h4>
+          <p class="iter-detail">Audit found 7 spots — chart badges, close button, tab strip. Bumped all interactive surfaces to iOS HIG minimums.</p>
+        </div>
+        <span class="iter-tag">Mar 21</span>
+      </li>
+      <li class="iter-item" data-reveal data-reveal-delay style="--d:240ms">
+        <span class="iter-num">04</span>
+        <div class="iter-text">
+          <h4 class="iter-title">Library notification fatigue</h4>
+          <p class="iter-detail">First version pinged on every episode. Reduced to a 2-day pre-air badge per saved title — library went from "noisy bookmark pile" to "quiet watchlist."</p>
+        </div>
+        <span class="iter-tag">Apr 1</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─────────────── 08 · UNDER THE HOOD ─────────────── -->
+<section id="under">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>09 · Under the hood</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">Three public APIs. <span>One narrative.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        No backend. The work was to make three independent data sources read like a single product.
+      </p>
+    </div>
+
+    <div class="arch-wrap" data-reveal>
+      <svg class="arch-svg" id="archSvg" viewBox="0 0 1100 360" xmlns="http://www.w3.org/2000/svg" aria-label="Data flow architecture">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M 0,0 L 9,3 L 0,6 z" fill="#C8102E" />
+          </marker>
+        </defs>
+        <!-- Screenshot → trace.moe -->
+        <path class="arch-line" d="M 230 140 L 314 140" marker-end="url(#arrowhead)" />
+        <!-- trace.moe → AniList -->
+        <path class="arch-line" d="M 530 130 L 614 140" marker-end="url(#arrowhead)" />
+        <!-- trace.moe → Jikan (branches down) -->
+        <path class="arch-line" d="M 530 160 Q 575 160 575 200 Q 575 240 614 240" fill="none" marker-end="url(#arrowhead)" />
+        <!-- AniList → AnimeVerse -->
+        <path class="arch-line" d="M 830 150 L 914 180" marker-end="url(#arrowhead)" />
+        <!-- Jikan → AnimeVerse -->
+        <path class="arch-line" d="M 830 230 L 914 200" marker-end="url(#arrowhead)" />
+
+        <!-- Node 01 — Capture -->
+        <g>
+          <rect class="arch-rect" x="30" y="90" width="200" height="100" rx="6"/>
+          <text class="node-num" x="50" y="118">01 / Input</text>
+          <text class="node-title" x="50" y="148">Screenshot</text>
+          <text class="node-caption" x="50" y="172">From a chat / image URL</text>
+        </g>
+
+        <!-- Node 02 — trace.moe -->
+        <g>
+          <rect class="arch-rect" x="320" y="90" width="210" height="100" rx="6"/>
+          <text class="node-num" x="340" y="118">02 / Match</text>
+          <text class="node-title" x="340" y="148">trace.moe</text>
+          <text class="node-caption" x="340" y="172">Frame → anime ID + ts</text>
+        </g>
+
+        <!-- Node 03a — AniList -->
+        <g>
+          <rect class="arch-rect" x="620" y="90" width="210" height="100" rx="6"/>
+          <text class="node-num" x="640" y="118">03 / Metadata</text>
+          <text class="node-title" x="640" y="148">AniList</text>
+          <text class="node-caption" x="640" y="172">Synopsis · score · status</text>
+        </g>
+
+        <!-- Node 03b — Jikan -->
+        <g>
+          <rect class="arch-rect" x="620" y="190" width="210" height="100" rx="6"/>
+          <text class="node-num" x="640" y="218">03 / Recos</text>
+          <text class="node-title" x="640" y="248">Jikan</text>
+          <text class="node-caption" x="640" y="272">"Users also liked"</text>
+        </g>
+
+        <!-- Node 04 — V3 surface -->
+        <g>
+          <rect class="arch-rect-accent" x="920" y="140" width="160" height="100" rx="6"/>
+          <text class="node-num" x="940" y="168" fill="#C8102E">04 / Output</text>
+          <text class="node-title" x="940" y="198">AnimeVerse</text>
+          <text class="node-caption" x="940" y="222">Detail · Library · Similar</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat" data-reveal data-reveal-delay style="--d:0ms">
+        <div class="stat-num"><span class="counter" data-target="30">30</span><small>k+</small></div>
+        <div class="stat-label">Anime in the database</div>
+      </div>
+      <div class="stat" data-reveal data-reveal-delay style="--d:120ms">
+        <div class="stat-num"><span class="counter" data-target="60">60</span><small>k+</small></div>
+        <div class="stat-label">Hours of scenes indexed</div>
+      </div>
+      <div class="stat" data-reveal data-reveal-delay style="--d:240ms">
+        <div class="stat-num"><span class="counter" data-target="98">98</span><small>%</small></div>
+        <div class="stat-label">Scene match accuracy</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 05 · CRAFT ─────────────── -->
+<section id="craft">
+  <div class="container">
+    <div class="craft-head">
+      <p class="kicker" data-reveal>10 · Visual language</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">A system, not decoration.</h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        Five tokens, three typefaces. Every choice mapped to the brand principle: crimson for intensity, sharp edges for editorial authority, Japanese type for cultural authenticity.
+      </p>
+    </div>
+
+    <div class="craft-grid">
+      <div class="craft-block" data-reveal>
+        <div class="block-label"><span>Palette</span><span class="block-count">05</span></div>
+        <div class="palette">
+          <div class="swatch" style="--c:#C8102E"><div class="sw-info"><span>Crimson</span><span>C8102E</span></div></div>
+          <div class="swatch dark" style="--c:#0D0D0F"><div class="sw-info"><span>Ink</span><span>0D0D0F</span></div></div>
+          <div class="swatch" style="--c:#F0E8D8"><div class="sw-info" style="color:#0D0D0F; background:linear-gradient(transparent,rgba(255,255,255,0.7))"><span>Paper</span><span>F0E8D8</span></div></div>
+          <div class="swatch" style="--c:#D4A843"><div class="sw-info"><span>Gold</span><span>D4A843</span></div></div>
+        </div>
+      </div>
+
+      <div class="craft-block" data-reveal data-reveal-delay style="--d:120ms">
+        <div class="block-label"><span>Type stack</span><span class="block-count">03</span></div>
+        <div class="type-stack">
+          <div class="type-row">
+            <span class="type-name">Display</span>
+            <span class="type-sample-display">Aa Editorial</span>
+          </div>
+          <div class="type-row">
+            <span class="type-name">Body</span>
+            <span class="type-sample-body">Inter — measured, neutral.</span>
+          </div>
+          <div class="type-row">
+            <span class="type-name">Mono</span>
+            <span class="type-sample-mono">Space Mono · 0123</span>
+          </div>
+          <div class="type-row">
+            <span class="type-name">JP</span>
+            <span class="type-sample-jp" lang="ja">アニメバース</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 10 · REFLECTION ─────────────── -->
+<section id="reflect">
+  <div class="container">
+    <div class="section-head">
+      <p class="kicker" data-reveal>11 · Reflection</p>
+      <h2 class="h2" data-reveal data-reveal-delay style="--d:120ms">What I'd do <span class="muted">differently.</span></h2>
+      <p class="lead" data-reveal data-reveal-delay style="--d:240ms">
+        Three apps in, V3 is the version I'm proudest of — but the next iteration is already taking shape. Here's what I'd hand off to V4 if I were starting tomorrow.
+      </p>
+    </div>
+
+    <div class="reflect-list">
+      <article class="reflect-item" data-reveal data-reveal-delay style="--d:0ms">
+        <span class="reflect-num">01</span>
+        <div class="reflect-body">
+          <h4>Caching wasn't a first-class citizen</h4>
+          <p>Cold-loads against trace.moe + AniList + Jikan stacked. The product feels slow on first paint. V4 needs an edge cache for AniList responses and a service-worker shell — not as a performance pass at the end, but as part of the data layer.</p>
+        </div>
+        <span class="reflect-tag">Performance</span>
+      </article>
+
+      <article class="reflect-item" data-reveal data-reveal-delay style="--d:120ms">
+        <span class="reflect-num">02</span>
+        <div class="reflect-body">
+          <h4>Mobile-respecting isn't mobile-native</h4>
+          <p>320px works. Touch targets pass. But the loop — screenshot from a chat, identify, save — wants a share-sheet integration and a lock-screen widget. The web mobile pass earns trust; a native shell earns daily use.</p>
+        </div>
+        <span class="reflect-tag">iOS · Next</span>
+      </article>
+
+      <article class="reflect-item" data-reveal data-reveal-delay style="--d:240ms">
+        <span class="reflect-num">03</span>
+        <div class="reflect-body">
+          <h4>Crimson is loud — paper deserves a turn</h4>
+          <p>The crimson editorial system gave V3 its identity, but it's a singular voice. V4 should explore the inverse: paper-tone canvas, ink type, crimson reserved for interaction states only. The brand survives the inversion if the typography does the heavy lifting.</p>
+        </div>
+        <span class="reflect-tag">Brand</span>
+      </article>
+    </div>
+
+    <p class="reflect-coda" data-reveal>
+      Three iterations taught me the same thing three times: <strong>composition is the design.</strong> Same APIs, same screenshots — different choices about hierarchy, typography, and chrome give you three different products. V4 will be the fourth.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────────── 11 · END ─────────────── -->
+<section id="end">
+  <div class="end-inner">
+    <p class="kicker end-kicker" data-reveal>End · Try it</p>
+    <h2 class="end-statement" data-reveal data-reveal-delay style="--d:120ms">
+      Same APIs everywhere. <em>Composition</em> is the design.
+    </h2>
+    <div class="end-cta-row" data-reveal data-reveal-delay style="--d:240ms">
+      <a href="https://aniverse-2-0.vercel.app" target="_blank" rel="noopener" class="cta">Open V3 live</a>
+      <a href="https://animeverse-discovery.vercel.app" target="_blank" rel="noopener" class="cta ghost">V2 archive</a>
+    </div>
+    <p class="end-meta" data-reveal data-reveal-delay style="--d:360ms">
+      Self-initiated <span>·</span> Built solo <span>·</span> Cursor + Figma <span>·</span> 2026
+    </p>
+  </div>
+</section>
+
+<footer>
+  <span>AnimeVerse <span class="jp">アニメバース</span></span>
+  <span>Case Study · v2.0</span>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ─────────── Reveal observer ───────────
+  var revealEls = document.querySelectorAll('[data-reveal], .split-line');
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '-8% 0px -8% 0px', threshold: 0 });
+  revealEls.forEach(function(el) { io.observe(el); });
+
+  // ─────────── Hero split-line trigger (kick on load) ───────────
+  setTimeout(function() {
+    document.querySelectorAll('#hero .split-line').forEach(function(s) {
+      s.classList.add('in');
+    });
+  }, 80);
+
+  // ─────────── Progress bar ───────────
+  var progress = document.getElementById('progress');
+  function updateProgress() {
+    var sh = document.documentElement.scrollHeight - window.innerHeight;
+    var p = sh > 0 ? window.scrollY / sh : 0;
+    progress.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+  }
+
+  // ─────────── Journey: horizontal pin scroll + accent morph ───────────
+  var journey = document.getElementById('journey');
+  var track = document.getElementById('journeyTrack');
+  var jpItems = document.querySelectorAll('.jp-item');
+  var rootStyle = document.documentElement.style;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    var r = parseInt(h.substr(0, 2), 16);
+    var g = parseInt(h.substr(2, 2), 16);
+    var b = parseInt(h.substr(4, 2), 16);
+    return [r, g, b];
+  }
+  var V1 = hexToRgb('F5A623');
+  var V2 = hexToRgb('FF2D78');
+  var V3 = hexToRgb('C8102E');
+
+  function blendAccent(t) {
+    // t is 0..1 across journey
+    // 0..0.5 = V1 -> V2, 0.5..1 = V2 -> V3
+    var c;
+    if (t < 0.5) {
+      var k = t / 0.5;
+      c = [Math.round(lerp(V1[0], V2[0], k)), Math.round(lerp(V1[1], V2[1], k)), Math.round(lerp(V1[2], V2[2], k))];
+    } else {
+      var k2 = (t - 0.5) / 0.5;
+      c = [Math.round(lerp(V2[0], V3[0], k2)), Math.round(lerp(V2[1], V3[1], k2)), Math.round(lerp(V2[2], V3[2], k2))];
+    }
+    return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+  }
+
+  function updateJourney() {
+    if (!journey || !track) return;
+    var rect = journey.getBoundingClientRect();
+    var total = journey.offsetHeight - window.innerHeight;
+    var raw = -rect.top / total;
+    var p = Math.max(0, Math.min(1, raw));
+    track.style.transform = 'translate3d(' + (-p * 200).toFixed(3) + 'vw, 0, 0)';
+
+    // Accent color morph through journey, then settle on V3
+    var accent;
+    if (raw <= 0) {
+      accent = 'rgb(200,16,46)'; // V3 (default outside journey)
+    } else if (raw >= 1) {
+      accent = 'rgb(200,16,46)'; // V3
+    } else {
+      accent = blendAccent(p);
+    }
+    rootStyle.setProperty('--accent', accent);
+
+    // Pagination active state
+    var idx = p < 0.34 ? 0 : (p < 0.67 ? 1 : 2);
+    jpItems.forEach(function(el, i) {
+      el.classList.toggle('is-active', i === idx);
+    });
+  }
+
+  // ─────────── rAF-throttled scroll ───────────
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        updateProgress();
+        updateJourney();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  onScroll();
+
+  // ─────────── Smooth in-page nav links ───────────
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var id = a.getAttribute('href');
+      if (id.length < 2) return;
+      var t = document.querySelector(id);
+      if (t) {
+        e.preventDefault();
+        t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ─────────── Section nav (sticky chapter index) ───────────
+  (function() {
+    var nav = document.getElementById('sectionNav');
+    if (!nav) return;
+    var hero = document.getElementById('hero');
+    var items = nav.querySelectorAll('.section-nav-item');
+    var sectionIds = ['why','research','journey','decisions','product','try','anatomy','iteration','under','craft','reflect'];
+    var sectionEls = sectionIds.map(function(id) { return document.getElementById(id); });
+
+    function update() {
+      var scrollY = window.scrollY;
+      var heroBot = hero ? hero.offsetTop + hero.offsetHeight : 0;
+      nav.classList.toggle('visible', scrollY > heroBot - 200);
+
+      var activeIdx = -1;
+      var threshold = scrollY + window.innerHeight * 0.35;
+      sectionEls.forEach(function(el, i) {
+        if (el && el.offsetTop <= threshold) activeIdx = i;
+      });
+      items.forEach(function(item, i) {
+        item.classList.toggle('active', i === activeIdx);
+      });
+
+      // Auto-scroll the active item into view within the horizontal nav
+      var activeItem = items[activeIdx];
+      if (activeItem) {
+        var inner = nav.querySelector('.section-nav-inner');
+        var itemLeft = activeItem.offsetLeft;
+        var itemRight = itemLeft + activeItem.offsetWidth;
+        var scrollLeft = inner.scrollLeft;
+        var visibleRight = scrollLeft + inner.clientWidth;
+        if (itemLeft < scrollLeft + 40) inner.scrollTo({ left: Math.max(0, itemLeft - 40), behavior: 'smooth' });
+        else if (itemRight > visibleRight - 40) inner.scrollTo({ left: itemRight - inner.clientWidth + 40, behavior: 'smooth' });
+      }
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  })();
+
+  // ─────────── Try it: trace.moe + AniList scene identifier ───────────
+  (function() {
+    var btn         = document.getElementById('tryBtn');
+    var urlInput    = document.getElementById('tryUrl');
+    var fileInput   = document.getElementById('tryFile');
+    var dropZone    = document.getElementById('tryDrop');
+    var preview     = document.getElementById('tryPreview');
+    var previewImg  = document.getElementById('tryPreviewImg');
+    var previewClear= document.getElementById('tryPreviewClear');
+    var samples     = document.getElementById('trySamples');
+    var result      = document.getElementById('tryResult');
+    var titleEl     = document.getElementById('tryTitle');
+    var epEl        = document.getElementById('tryEpisode');
+    var timeEl      = document.getElementById('tryTime');
+    var confEl      = document.getElementById('tryConf');
+    var detailLink  = document.getElementById('tryDetailLink');
+    var clipEl      = document.getElementById('tryClip');
+    var frameEl     = document.getElementById('tryFrame');
+    var errEl       = document.getElementById('tryError');
+    if (!btn || !urlInput) return;
+
+    var pendingFile = null; // File object when user has dropped/picked a file
+
+    // ── helpers ────────────────────────────────
+    function showErr(msg) {
+      errEl.textContent = msg || '';
+      errEl.hidden = !msg;
+    }
+    function setBusy(loading) {
+      btn.disabled = loading;
+      btn.firstChild.textContent = loading ? 'Searching ' : 'Identify ';
+      if (fileInput) fileInput.disabled = loading;
+      samples.querySelectorAll('button').forEach(function(s) { s.disabled = loading; });
+    }
+    function fmtTime(s) {
+      if (s == null) return '—';
+      var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    // ── show file preview ──────────────────────
+    function setPreview(file) {
+      pendingFile = file;
+      urlInput.value = '';
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        preview.classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    }
+    function clearPreview() {
+      pendingFile = null;
+      preview.classList.remove('has-image');
+      previewImg.src = '';
+      if (fileInput) fileInput.value = '';
+    }
+
+    // ── AniList fetch: title + idMal ──────────
+    async function anilistData(id) {
+      try {
+        var res = await fetch('https://graphql.anilist.co', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: 'query($id: Int) { Media(id: $id, type: ANIME) { title { romaji english } idMal } }',
+            variables: { id: id }
+          })
+        });
+        var j = await res.json();
+        var m = j.data && j.data.Media;
+        var t = m && m.title;
+        return {
+          title: (t && (t.english || t.romaji)) || ('AniList ID ' + id),
+          idMal: (m && m.idMal) || null
+        };
+      } catch (e) { return { title: 'AniList ID ' + id, idMal: null }; }
+    }
+
+    // ── render result ──────────────────────────
+    async function renderResult(top) {
+      confEl.textContent = Math.round(top.similarity * 100) + '%';
+      epEl.textContent  = top.episode != null ? 'Episode ' + top.episode : 'Episode —';
+      timeEl.textContent = fmtTime(top.from) + ' → ' + fmtTime(top.to);
+      detailLink.href   = 'https://aniverse-2-0.vercel.app'; // updated below once idMal resolves
+      titleEl.textContent = 'Loading title…';
+      if (top.video) {
+        clipEl.src = top.video; clipEl.poster = top.image || '';
+        clipEl.hidden = false; frameEl.hidden = true;
+        clipEl.play().catch(function(){});
+      } else if (top.image) {
+        frameEl.src = top.image;
+        frameEl.hidden = false; clipEl.hidden = true;
+      }
+      result.hidden = false;
+      result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Fetch title + MAL ID from AniList, then build exact deep link
+      var info = await anilistData(top.anilist);
+      titleEl.textContent = info.title;
+      if (info.idMal) {
+        detailLink.href = 'https://aniverse-2-0.vercel.app?anime=' + info.idMal;
+      }
+    }
+
+    // ── identify by URL ────────────────────────
+    async function identifyByUrl(url) {
+      if (!url) { showErr('Paste a direct image URL or pick a sample.'); return; }
+      showErr(''); setBusy(true);
+      try {
+        var res = await fetch('https://api.trace.moe/search?url=' + encodeURIComponent(url));
+        var data = await res.json();
+        if (data.error) { showErr(data.error); setBusy(false); return; }
+        var top = data.result && data.result[0];
+        if (!top) { showErr('No matches returned.'); setBusy(false); return; }
+        await renderResult(top);
+      } catch (e) { showErr('Network error — try again or check the URL.'); }
+      setBusy(false);
+    }
+
+    // ── identify by File (multipart POST) ─────
+    async function identifyByFile(file) {
+      showErr(''); setBusy(true);
+      try {
+        var fd = new FormData();
+        fd.append('image', file);
+        var res = await fetch('https://api.trace.moe/search', { method: 'POST', body: fd });
+        var data = await res.json();
+        if (data.error) { showErr(data.error); setBusy(false); return; }
+        var top = data.result && data.result[0];
+        if (!top) { showErr('No matches returned.'); setBusy(false); return; }
+        await renderResult(top);
+      } catch (e) { showErr('Network error — try again.'); }
+      setBusy(false);
+    }
+
+    // ── run: pick file vs URL ──────────────────
+    function run() {
+      if (pendingFile) { identifyByFile(pendingFile); return; }
+      var url = (urlInput.value || '').trim();
+      identifyByUrl(url);
+    }
+
+    // ── button + Enter ─────────────────────────
+    btn.addEventListener('click', run);
+    urlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); run(); }
+    });
+    // Typing a URL clears any pending file
+    urlInput.addEventListener('input', function() {
+      if (urlInput.value) clearPreview();
+    });
+
+    // ── file input change ──────────────────────
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        var f = fileInput.files && fileInput.files[0];
+        if (f) setPreview(f);
+      });
+    }
+
+    // ── drag-and-drop ──────────────────────────
+    if (dropZone) {
+      ['dragenter','dragover'].forEach(function(ev) {
+        dropZone.addEventListener(ev, function(e) {
+          e.preventDefault(); dropZone.classList.add('drag-over');
+        });
+      });
+      ['dragleave','dragend'].forEach(function(ev) {
+        dropZone.addEventListener(ev, function() { dropZone.classList.remove('drag-over'); });
+      });
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault(); dropZone.classList.remove('drag-over');
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f && f.type.indexOf('image/') === 0) setPreview(f);
+      });
+      // Keyboard activation for the drop zone button
+      dropZone.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput && fileInput.click(); }
+      });
+    }
+
+    // ── clear preview button ───────────────────
+    if (previewClear) {
+      previewClear.addEventListener('click', clearPreview);
+    }
+
+    // ── global paste (cmd+V / ctrl+V) ─────────
+    document.addEventListener('paste', function(e) {
+      // Only handle paste when focus is inside #try section or no active input elsewhere
+      var tag = document.activeElement && document.activeElement.tagName.toLowerCase();
+      if (tag === 'input' && document.activeElement !== urlInput) return;
+      if (tag === 'textarea') return;
+      var items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image/') === 0) {
+          var blob = items[i].getAsFile();
+          if (blob) { setPreview(blob); identifyByFile(blob); }
+          return;
+        }
+      }
+    });
+
+    // ── sample buttons ─────────────────────────
+    // Local samples (localhost) can't be fetched by trace.moe's server —
+    // resolve them to a blob and use the multipart POST path instead.
+    samples.addEventListener('click', async function(e) {
+      var b = e.target.closest('.try-sample');
+      if (!b) return;
+      var sampleUrl = b.getAttribute('data-sample-url');
+      if (!sampleUrl) return;
+      clearPreview();
+
+      var absolute = sampleUrl.indexOf('http') === 0
+        ? sampleUrl
+        : new URL(sampleUrl, window.location.href).href;
+
+      // If the URL points to this host, fetch as blob and POST as file
+      var isLocal = absolute.indexOf(window.location.origin) === 0 ||
+                    absolute.indexOf('localhost') !== -1 ||
+                    absolute.indexOf('127.0.0.1') !== -1;
+
+      if (isLocal) {
+        showErr(''); setBusy(true);
+        try {
+          var res = await fetch(absolute);
+          if (!res.ok) throw new Error('fetch failed');
+          var blob = await res.blob();
+          var fname = sampleUrl.split('/').pop() || 'sample.png';
+          var file = new File([blob], fname, { type: blob.type || 'image/png' });
+          setPreview(file);
+          await identifyByFile(file);
+        } catch (err) {
+          showErr('Could not load sample — ' + err.message);
+          setBusy(false);
+        }
+        return;
+      }
+
+      // Public URL — pass directly
+      urlInput.value = absolute;
+      await identifyByUrl(absolute);
+    });
+  })();
+
+  // ─────────── Anatomy: pin ↔ key sync ───────────
+  (function() {
+    var pins = document.querySelectorAll('.pin[data-pin]');
+    var keys = document.querySelectorAll('.anatomy-key li[data-key]');
+    if (!pins.length) return;
+
+    function highlight(id, on) {
+      pins.forEach(function(p) {
+        if (p.getAttribute('data-pin') === id) p.classList.toggle('active', on);
+      });
+      keys.forEach(function(k) {
+        if (k.getAttribute('data-key') === id) k.classList.toggle('active', on);
+      });
+    }
+
+    pins.forEach(function(p) {
+      var id = p.getAttribute('data-pin');
+      p.addEventListener('mouseenter', function() { highlight(id, true); });
+      p.addEventListener('mouseleave', function() { highlight(id, false); });
+      p.addEventListener('focus', function() { highlight(id, true); });
+      p.addEventListener('blur', function() { highlight(id, false); });
+    });
+    keys.forEach(function(k) {
+      var id = k.getAttribute('data-key');
+      k.addEventListener('mouseenter', function() { highlight(id, true); });
+      k.addEventListener('mouseleave', function() { highlight(id, false); });
+    });
+  })();
+
+  // ─────────── Counter animation on stat reveal ───────────
+  (function() {
+    var counters = document.querySelectorAll('.counter');
+    if (!counters.length) return;
+
+    function animateCounter(el) {
+      if (el.dataset.done) return;
+      el.dataset.done = '1';
+      var target = parseInt(el.dataset.target, 10) || 0;
+      var duration = target > 50 ? 1600 : 900;
+      var start = performance.now();
+      function tick(now) {
+        var p = Math.min(1, (now - start) / duration);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * target);
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    var counterIO = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          animateCounter(e.target);
+          counterIO.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    counters.forEach(function(c) { c.textContent = '0'; counterIO.observe(c); });
+  })();
+
+  // ─────────── Architecture SVG: stroke-dashoffset draw on scroll-in ───────────
+  (function() {
+    var svg = document.getElementById('archSvg');
+    if (!svg) return;
+    var archIO = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          svg.classList.add('in');
+          archIO.unobserve(svg);
+        }
+      });
+    }, { rootMargin: '0px 0px -15% 0px' });
+    archIO.observe(svg);
+  })();
+
+  // ─────────── Subtle hero parallax ───────────
+  if (!reduced) {
+    var heroGlow = document.querySelector('.hero-glow');
+    var heroGrid = document.querySelector('.hero-grid-bg');
+    var heroInner = document.querySelector('.hero-inner');
+    function heroParallax() {
+      var y = window.scrollY;
+      if (y > window.innerHeight) return;
+      if (heroGlow) heroGlow.style.transform = 'translate3d(0,' + (y * 0.25).toFixed(1) + 'px,0)';
+      if (heroGrid) heroGrid.style.transform = 'translate3d(0,' + (y * 0.12).toFixed(1) + 'px,0)';
+      if (heroInner) heroInner.style.transform = 'translate3d(0,' + (y * -0.08).toFixed(1) + 'px,0)';
+    }
+    window.addEventListener('scroll', function() {
+      window.requestAnimationFrame(heroParallax);
+    }, { passive: true });
+  }
+})();
+</script>
+
+</body>
+</html>
