@@ -157,7 +157,8 @@
     display:flex;flex-direction:column;
     transition:transform .5s var(--ease),box-shadow .5s var(--ease);
   }
-  .project:hover .preview-wrap{transform:translateY(-4px) rotate(-.4deg);box-shadow:0 36px 80px rgba(17,17,9,.22),0 6px 18px rgba(17,17,9,.12)}
+  .preview-outer{width:100%;display:block}
+  .preview-outer:hover .preview-wrap{transform:translateY(-4px) rotate(-.4deg);box-shadow:0 36px 80px rgba(17,17,9,.22),0 6px 18px rgba(17,17,9,.12)}
   .browser-bar{
     height:32px;flex:0 0 32px;
     background:#1A1917;
@@ -516,6 +517,7 @@
     <!-- 01 MENTOR -->
     <article class="project" data-r>
       <!-- live preview -->
+      <div class="preview-outer">
       <a href="Mentor_CaseStudy_Portfolio.html" class="preview-wrap" tabindex="-1" aria-hidden="true">
         <div class="browser-bar">
           <div class="bk bk-r"></div><div class="bk bk-y"></div><div class="bk bk-g"></div>
@@ -525,6 +527,7 @@
           <img src="2026-05-07_18-47-23.png" alt="Mentor case study preview" loading="lazy" />
         </div>
       </a>
+      </div>
 
       <div class="p-copy">
         <div class="p-num"><span>Case study № 01</span><span>2026 Q1</span></div>
@@ -553,6 +556,7 @@
     <!-- 02 ANIMEVERSE -->
     <article class="project" data-r>
       <!-- live preview -->
+      <div class="preview-outer">
       <a href="animeverse-revamp.html" class="preview-wrap" tabindex="-1" aria-hidden="true">
         <div class="browser-bar">
           <div class="bk bk-r"></div><div class="bk bk-y"></div><div class="bk bk-g"></div>
@@ -562,6 +566,7 @@
           <img src="2026-05-07_18-47-17.png" alt="AnimeVerse case study preview" loading="lazy" />
         </div>
       </a>
+      </div>
 
       <div class="p-copy">
         <div class="p-num"><span>Case study № 02</span><span>2026 Q2</span></div>
