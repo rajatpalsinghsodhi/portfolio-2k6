@@ -866,19 +866,27 @@
     if (!AC) return;
     let ctx = null;
 
+    let unlocked = false;
+
     function getCtx(){
+      if (!unlocked) return null;
       if (!ctx) ctx = new AC();
       if (ctx.state === 'suspended') ctx.resume();
       return ctx;
     }
 
-    // Unlock AudioContext on first real user gesture
-    function unlock(){ getCtx(); }
+    // Gate all audio behind first real click/tap/key
+    function unlock(){
+      unlocked = true;
+      if (!ctx) ctx = new AC();
+      ctx.resume();
+    }
     document.addEventListener('pointerdown', unlock, { once: true });
     document.addEventListener('keydown',     unlock, { once: true });
 
     function noise(vol, dur){
       const ac = getCtx();
+      if (!ac) return;
       const len = Math.floor(ac.sampleRate * dur);
       const buf = ac.createBuffer(1, len, ac.sampleRate);
       const d = buf.getChannelData(0);
@@ -892,6 +900,7 @@
 
     function tone(f1, f2, vol, dur, type='sine'){
       const ac = getCtx();
+      if (!ac) return;
       const now = ac.currentTime;
       const osc = ac.createOscillator();
       const g = ac.createGain();
