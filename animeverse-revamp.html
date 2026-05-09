@@ -262,9 +262,12 @@ section { position: relative; }
     font-size: 9px;
     padding: 2px 0;
   }
-  /* push journey pagination above the bottom nav bar (~52px) */
+  /* fix pagination above bottom nav — use fixed so overflow:hidden can't clip it */
   .journey-pagination {
-    bottom: 72px;
+    position: fixed;
+    bottom: 56px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
