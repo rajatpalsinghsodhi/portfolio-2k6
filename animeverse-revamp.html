@@ -241,7 +241,28 @@ section { position: relative; }
 .section-nav-item.active { color: var(--accent); border-bottom-color: var(--accent); transition: color 0.6s var(--ease), border-color 0.4s var(--ease); }
 .section-nav-num { color: var(--muted); margin-right: 6px; }
 .section-nav-item.active .section-nav-num { color: var(--accent); }
-@media (max-width: 900px) { .section-nav { display: none; } }
+@media (max-width: 900px) {
+  .section-nav {
+    display: block;
+    top: auto;
+    bottom: 0;
+    transform: translateY(100%);
+    border-bottom: none;
+    border-top: 1px solid var(--line);
+    padding: 12px var(--gutter);
+  }
+  .section-nav.visible {
+    transform: translateY(0);
+  }
+  .section-nav-inner {
+    gap: 20px;
+    padding: 0;
+  }
+  .section-nav-item {
+    font-size: 9px;
+    padding: 2px 0;
+  }
+}
 
 /* ── REVEAL SYSTEM ─────────────────────── */
 [data-reveal] {
