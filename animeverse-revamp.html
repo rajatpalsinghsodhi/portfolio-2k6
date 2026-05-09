@@ -244,12 +244,10 @@ section { position: relative; }
 @media (max-width: 900px) {
   .section-nav {
     display: block;
-    top: auto;
-    bottom: 0;
-    transform: translateY(100%);
-    border-bottom: none;
-    border-top: 1px solid var(--line);
-    padding: 12px var(--gutter);
+    top: 50px;
+    transform: translateY(-100%);
+    border-bottom: 1px solid var(--line);
+    padding: 10px var(--gutter);
   }
   .section-nav.visible {
     transform: translateY(0);
@@ -262,10 +260,9 @@ section { position: relative; }
     font-size: 9px;
     padding: 2px 0;
   }
-  /* fix pagination above bottom nav — use fixed so overflow:hidden can't clip it */
   .journey-pagination {
     position: fixed;
-    bottom: 56px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
   }
